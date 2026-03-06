@@ -34,19 +34,19 @@ help with the setup:
 > Set up Symphony for my repository based on
 > https://github.com/openai/symphony/blob/main/elixir/README.md
 
-### Option 3. Use the Go implementation
+### Option 3. Go 実装を使う
 
-A full Go reimplementation with pluggable agent backend support (Codex + Claude Code).
+Codex と Claude Code の両方に対応したプラガブルなエージェントバックエンドを備えた Go による完全再実装です。
 
-#### Prerequisites
+#### 前提条件
 
 - Go 1.22+
-- A [Linear](https://linear.app) account with an API key
-- [Codex](https://github.com/openai/codex) or [Claude Code](https://claude.com/claude-code) installed
+- [Linear](https://linear.app) アカウントと API キー
+- [Codex](https://github.com/openai/codex) または [Claude Code](https://claude.com/claude-code) がインストール済みであること
 
-#### Quick Start
+#### クイックスタート
 
-1. **Create a `WORKFLOW.md`** in your project root:
+1. **プロジェクトルートに `WORKFLOW.md` を作成:**
 
 ```markdown
 ---
@@ -81,59 +81,59 @@ No description provided.
 {% endif %}
 ```
 
-See [elixir/WORKFLOW.md](elixir/WORKFLOW.md) for a full-featured example with status-based routing, PR feedback sweeps, and rework handling.
+ステータスベースのルーティング、PR フィードバックスイープ、リワーク処理を含む完全な設定例は [elixir/WORKFLOW.md](elixir/WORKFLOW.md) を参照してください。
 
-2. **Set environment variables:**
+2. **環境変数を設定:**
 
 ```bash
 export LINEAR_API_KEY="lin_api_xxxxx"
-# Optional: only process issues assigned to the authenticated user
+# オプション: 認証ユーザーにアサインされたイシューのみ処理
 export LINEAR_ASSIGNEE="me"
 ```
 
-3. **Build and run:**
+3. **ビルドと実行:**
 
 ```bash
-# Build
+# ビルド
 go build -o bin/symphony ./cmd/symphony
 
-# Run (reads WORKFLOW.md from current directory)
+# 実行 (カレントディレクトリの WORKFLOW.md を読み込み)
 ./bin/symphony
 
-# Or specify a workflow path
+# ワークフローファイルのパスを指定する場合
 ./bin/symphony /path/to/WORKFLOW.md
 ```
 
-#### CLI Options
+#### CLI オプション
 
-| Flag | Description | Default |
+| フラグ | 説明 | デフォルト |
 |---|---|---|
-| `--workflow` | Path to WORKFLOW.md | `./WORKFLOW.md` |
-| `--port` | HTTP dashboard port (`-1` = use config, `0` = ephemeral) | `-1` |
-| `--log` | Log file path (enables file logging with rotation) | _(none)_ |
-| `--no-dashboard` | Disable terminal dashboard | `false` |
+| `--workflow` | WORKFLOW.md のパス | `./WORKFLOW.md` |
+| `--port` | HTTP ダッシュボードのポート (`-1` = 設定値を使用, `0` = エフェメラル) | `-1` |
+| `--log` | ログファイルパス (ローテーション付きファイルログを有効化) | _(なし)_ |
+| `--no-dashboard` | ターミナルダッシュボードを無効化 | `false` |
 
-#### Subcommands
+#### サブコマンド
 
-| Command | Description |
+| コマンド | 説明 |
 |---|---|
-| `symphony` | Run the orchestrator (default) |
-| `symphony mcp-tools` | Run MCP stdio server mode (used by Claude Code for `linear_graphql` tool) |
+| `symphony` | オーケストレーターを実行 (デフォルト) |
+| `symphony mcp-tools` | MCP stdio サーバーモードで実行 (Claude Code から `linear_graphql` ツールを利用する際に使用) |
 
-#### Agent Backends
+#### エージェントバックエンド
 
-Set `agent.backend` in your WORKFLOW.md front matter:
+WORKFLOW.md のフロントマターで `agent.backend` を設定します:
 
-**Codex** (`agent.backend: codex`, default):
-- Communicates via JSON-RPC 2.0 over stdio
-- Long-lived process with multi-turn support within a session
-- Configurable approval policy and sandbox settings under `codex:` section
+**Codex** (`agent.backend: codex`, デフォルト):
+- JSON-RPC 2.0 over stdio で通信
+- セッション内で複数ターンをサポートする長寿命プロセス
+- `codex:` セクションで承認ポリシーとサンドボックスを設定可能
 
 **Claude Code** (`agent.backend: claude-code`):
-- Spawns `claude` CLI per turn with `--output-format stream-json`
-- Multi-turn via `--resume <session-id>`
-- `linear_graphql` tool exposed via MCP (`symphony mcp-tools` subprocess)
-- Configurable under `claude_code:` section:
+- ターンごとに `claude` CLI を `--output-format stream-json` で起動
+- `--resume <session-id>` によるマルチターン対応
+- MCP 経由で `linear_graphql` ツールを公開 (`symphony mcp-tools` サブプロセス)
+- `claude_code:` セクションで設定可能:
 
 ```yaml
 agent:
@@ -149,32 +149,32 @@ claude_code:
     - Grep
 ```
 
-#### Observability
+#### 可観測性
 
-- **Terminal dashboard**: Live lipgloss-styled view of running agents, retry queue, and token usage (enabled by default)
-- **HTTP dashboard**: Set `server.port` in WORKFLOW.md or use `--port` flag; browse to `http://127.0.0.1:<port>/`
-- **REST API**: `GET /api/status` (snapshot), `POST /api/refresh` (trigger immediate poll), `GET /health`
-- **Structured logging**: JSON via slog, optional file rotation with `--log`
+- **ターミナルダッシュボード**: 実行中のエージェント、リトライキュー、トークン使用量をリアルタイム表示 (lipgloss スタイリング、デフォルト有効)
+- **HTTP ダッシュボード**: WORKFLOW.md の `server.port` または `--port` フラグで設定。`http://127.0.0.1:<port>/` にアクセス
+- **REST API**: `GET /api/status` (スナップショット), `POST /api/refresh` (即時ポーリング実行), `GET /health`
+- **構造化ログ**: slog による JSON 出力、`--log` でファイルローテーション対応
 
-#### Architecture
+#### アーキテクチャ
 
 ```
-cmd/symphony/main.go          CLI entrypoint + mcp-tools subcommand
+cmd/symphony/main.go          CLI エントリポイント + mcp-tools サブコマンド
 internal/
-├── config/                    Typed config with $VAR resolution, dynamic reload
-├── workflow/                  WORKFLOW.md parser + fsnotify file watcher
-├── tracker/                   Tracker interface + memory implementation
-├── linear/                    GraphQL client, pagination, assignee routing
-├── orchestrator/              Core state machine (dispatch, reconcile, retry)
-├── agent/                     Backend interface, Runner, DynamicTool handler
-├── codex/                     Codex JSON-RPC backend
-├── claudecode/                Claude Code CLI backend
-├── mcpserver/                 MCP stdio server (linear_graphql tool)
-├── workspace/                 Per-issue workspace manager + path safety
-├── prompt/                    Liquid template rendering
-├── server/                    Echo HTTP server + embedded dashboard
-├── dashboard/                 Lipgloss terminal UI
-└── logging/                   slog + lumberjack rotation
+├── config/                    型付き設定、$VAR 解決、動的リロード
+├── workflow/                  WORKFLOW.md パーサー + fsnotify ファイル監視
+├── tracker/                   Tracker インターフェース + インメモリ実装
+├── linear/                    GraphQL クライアント、ページネーション、アサイニールーティング
+├── orchestrator/              コア状態マシン (ディスパッチ、リコンサイル、リトライ)
+├── agent/                     Backend インターフェース、Runner、DynamicTool ハンドラ
+├── codex/                     Codex JSON-RPC バックエンド
+├── claudecode/                Claude Code CLI バックエンド
+├── mcpserver/                 MCP stdio サーバー (linear_graphql ツール)
+├── workspace/                 イシュー毎のワークスペース管理 + パス安全性
+├── prompt/                    Liquid テンプレートレンダリング
+├── server/                    Echo HTTP サーバー + 埋め込みダッシュボード
+├── dashboard/                 lipgloss ターミナル UI
+└── logging/                   slog + lumberjack ログローテーション
 ```
 
 ---
