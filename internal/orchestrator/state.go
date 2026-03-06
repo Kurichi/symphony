@@ -53,10 +53,10 @@ type RetryEntry struct {
 
 // AgentTotals aggregates token usage and runtime seconds across sessions.
 type AgentTotals struct {
-	InputTokens    int64
-	OutputTokens   int64
-	TotalTokens    int64
-	SecondsRunning float64
+	InputTokens    int64   `json:"InputTokens"`
+	OutputTokens   int64   `json:"OutputTokens"`
+	TotalTokens    int64   `json:"TotalTokens"`
+	SecondsRunning float64 `json:"SecondsRunning"`
 }
 
 // RateLimits holds the latest rate-limit snapshot from agent events.
